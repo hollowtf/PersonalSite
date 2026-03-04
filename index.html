@@ -591,6 +591,7 @@
     }, { passive: false });
 
     window.addEventListener('touchend', () => {
+      if (frozen || !isDragging) return;
       // Project position forward based on velocity for momentum
       const momentum = 200;
       const projected = clampPan(
