@@ -665,8 +665,19 @@
       if (expandedCard === card) {
         collapseCard();
       } else if (expandedCard) {
-        collapseCard();
-        setTimeout(() => expandCard(card), 50);
+        // Switching cards: snap to collapsed state so expandCard
+        // calculates from stable values (not mid-animation ones)
+        const savedX = preExpandX;
+        const savedY = preExpandY;
+        expandedCard = null;
+        frozen = false;
+        currentScale = 1;
+        targetScale = 1;
+        currentX = savedX;
+        currentY = savedY;
+        canvas.style.zoom = 1;
+        canvas.style.transform = `translate3d(${savedX}px, ${savedY}px, 0)`;
+        expandCard(card);
       } else {
         expandCard(card);
       }
