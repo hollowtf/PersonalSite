@@ -285,42 +285,45 @@
     const canvas = document.querySelector('.canvas');
 
     // Column definitions: either image paths or placeholder heights
+    const isMobile = matchMedia('(max-width: 768px)').matches;
+    const assetBase = isMobile ? 'assets/mobile' : 'assets';
+
     const columns = [
       // Column 1: images
       { images: [
-        'assets/Column-1/Asset-1.jpeg',
-        'assets/Column-1/Asset-2.png',
-        'assets/Column-1/Asset-3.png',
-        'assets/Column-1/Asset-4.jpg',
+        `${assetBase}/Column-1/Asset-1.jpeg`,
+        `${assetBase}/Column-1/Asset-2.png`,
+        `${assetBase}/Column-1/Asset-3.png`,
+        `${assetBase}/Column-1/Asset-4.jpg`,
       ]},
       // Column 2: images
       { images: [
-        'assets/Column-2/Asset-1.png',
-        'assets/Column-2/Asset-2.png',
-        'assets/Column-2/Asset-3.png',
-        'assets/Column-2/Asset-4.png',
+        `${assetBase}/Column-2/Asset-1.png`,
+        `${assetBase}/Column-2/Asset-2.png`,
+        `${assetBase}/Column-2/Asset-3.png`,
+        `${assetBase}/Column-2/Asset-4.png`,
       ]},
       // Column 3: images
       { images: [
-        'assets/Column-3/Asset-1.png',
-        'assets/Column-3/Asset-2.png',
-        'assets/Column-3/Asset-3.png',
-        'assets/Column-3/Asset-4.png',
-        'assets/Column-3/Asset-5.jpg',
+        `${assetBase}/Column-3/Asset-1.png`,
+        `${assetBase}/Column-3/Asset-2.png`,
+        `${assetBase}/Column-3/Asset-3.png`,
+        `${assetBase}/Column-3/Asset-4.png`,
+        `${assetBase}/Column-3/Asset-5.jpg`,
       ]},
       // Column 4: images
       { images: [
-        'assets/Column-4/Asset-1.png',
-        'assets/Column-4/Asset-2.jpg',
-        'assets/Column-4/Asset-3.png',
-        'assets/Column-4/Asset-4.png',
+        `${assetBase}/Column-4/Asset-1.png`,
+        `${assetBase}/Column-4/Asset-2.jpg`,
+        `${assetBase}/Column-4/Asset-3.png`,
+        `${assetBase}/Column-4/Asset-4.png`,
       ]},
       // Column 5: images
       { images: [
-        'assets/Column-5/Asset-1.png',
-        'assets/Column-5/Asset-2.png',
-        'assets/Column-5/Asset-3.png',
-        'assets/Column-5/Asset-4.png',
+        `${assetBase}/Column-5/Asset-1.png`,
+        `${assetBase}/Column-5/Asset-2.png`,
+        `${assetBase}/Column-5/Asset-3.png`,
+        `${assetBase}/Column-5/Asset-4.png`,
       ]},
     ];
 
