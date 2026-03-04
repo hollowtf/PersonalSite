@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio</title>
+  <style>
+    @font-face {
+      font-family: 'Söhne';
+      src: url('assets/Font/Söhne-Buch.otf') format('opentype');
+      font-weight: 400;
+      font-style: normal;
+    }
+
+    @font-face {
+      font-family: 'Söhne';
+      src: url('assets/Font/Söhne-Dreiviertelfett.otf') format('opentype');
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #000;
+      overflow: hidden;
+      width: 100vw;
+      height: 100vh;
+      cursor: none;
+      font-family: 'Söhne', sans-serif;
+    }
+
+    .canvas {
+      position: absolute;
+      will-change: transform;
+      transform-origin: 0 0;
+    }
+
+    .grid {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 24px;
+    }
+
+    .column {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      width: 400px;
+      flex-shrink: 0;
+    }
+
+    .card {
+      position: relative;
+      width: 400px;
+      background: transparent;
+      border-radius: 0;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(30px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      will-change: transform;
+    }
+
+    .card.is-anchor {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .card.is-visible {
+      opacity: 0.5;
+      transform: translateY(0);
+    }
+
+    .card.is-visible:hover {
+      opacity: 1;
+    }
+
+    .card img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    /* Info button & panel */
+    .info-btn {
+      position: fixed;
+      top: 32px;
+      right: 32px;
+      z-index: 10;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.00);
+      background: rgba(0, 0, 0, 0.50);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      color: #fff;
+      font-family: inherit;
+      font-size: 16px;
+      line-height: 28px;
+      cursor: pointer;
+      padding: 8px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .info-btn.is-close {
+      padding: 8px;
+    }
+
+    .info-btn img {
+      width: 28px;
+      height: 28px;
+    }
+
+    .info-panel {
+      position: fixed;
+      top: calc(32px + 46px + 12px);
+      right: 32px;
+      z-index: 10;
+      width: 320px;
+      border-radius: 8px;
+      border: 1px solid rgba(0, 0, 0, 0.00);
+      background: rgba(0, 0, 0, 0.50);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 24px;
+      color: #fff;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(-8px);
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+
+    .info-panel.is-open {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+
+    .info-panel h2 {
+      font-size: 24px;
+      line-height: 28px;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .info-panel p {
+      font-size: 14px;
+      line-height: 22px;
+      color: rgba(255, 255, 255, 0.7);
+      margin-bottom: 16px;
+    }
+
+    .info-panel a {
+      color: #fff;
+      font-size: 14px;
+      line-height: 28px;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .info-panel a:hover {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .column {
+        width: 320px;
+      }
+
+      .card {
+        width: 320px;
+      }
+
+      .grid {
+        gap: 16px;
+        padding: 16px;
+      }
+
+      .column {
+        gap: 16px;
+      }
+
+      .info-panel {
+        width: calc(100vw - 64px);
+      }
+    }
+
+    .cursor {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 16px;
+      height: 16px;
+      background: #FFD700;
+      transform: translate(-50%, -50%) rotate(45deg);
+      pointer-events: none;
+      z-index: 100;
+    }
+
+    @media (pointer: coarse) {
+      body {
+        cursor: default;
+      }
+
+      .cursor {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="canvas">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="cursor" id="cursor"></div>
+  <button class="info-btn" id="infoBtn">Info</button>
+  <div class="info-panel" id="infoPanel">
+    <h2>An assortment of typographic, visual, &amp; photographic pieces.</h2>
+    <p>All pieces in this collection were made by Tom Holloway, a practising graphic and experience designer who's previously worked for clients including Apple, Google, and Spotify. Currently the founding designer of Witan Labs.</p>
+    <a href="mailto:tom.holloway9@gmail.com?subject=Hello">Contact</a>
+  </div>
+
+  <script>
+    const grid = document.getElementById('grid');
+    const canvas = document.querySelector('.canvas');
+
+    // Column definitions: either image paths or placeholder heights
+    const columns = [
+      // Column 1: images
+      { images: [
+        'assets/Column-1/Asset-1.jpeg',
+        'assets/Column-1/Asset-2.png',
+        'assets/Column-1/Asset-3.png',
+        'assets/Column-1/Asset-4.jpg',
+      ]},
+      // Column 2: images
+      { images: [
+        'assets/Column-2/Asset-1.png',
+        'assets/Column-2/Asset-2.png',
+        'assets/Column-2/Asset-3.png',
+        'assets/Column-2/Asset-4.png',
+      ]},
+      // Column 3: images
+      { images: [
+        'assets/Column-3/Asset-1.png',
+        'assets/Column-3/Asset-2.png',
+        'assets/Column-3/Asset-3.png',
+        'assets/Column-3/Asset-4.png',
+        'assets/Column-3/Asset-5.jpg',
+      ]},
+      // Column 4: images
+      { images: [
+        'assets/Column-4/Asset-1.png',
+        'assets/Column-4/Asset-2.jpg',
+        'assets/Column-4/Asset-3.png',
+        'assets/Column-4/Asset-4.png',
+      ]},
+      // Column 5: images
+      { images: [
+        'assets/Column-5/Asset-1.png',
+        'assets/Column-5/Asset-2.png',
+        'assets/Column-5/Asset-3.png',
+        'assets/Column-5/Asset-4.png',
+      ]},
+    ];
+
+    // Build columns and cards
+    columns.forEach(colDef => {
+      const col = document.createElement('div');
+      col.className = 'column';
+
+      if (colDef.images) {
+        colDef.images.forEach(src => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          const img = document.createElement('img');
+          img.src = src;
+          img.alt = '';
+          card.appendChild(img);
+          col.appendChild(card);
+        });
+      } else {
+        colDef.heights.forEach(h => {
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.style.height = `${h}px`;
+          col.appendChild(card);
+        });
+      }
+
+      grid.appendChild(col);
+    });
+
+    // Panning state — will be set once images load
+    let currentX = 0;
+    let currentY = 0;
+    let targetX = 0;
+    let targetY = 0;
+    let homeX = 0;
+    let homeY = 0;
+    let returning = false;
+    let frozen = false;
+    let expandedCard = null;
+    let currentScale = 1;
+    let targetScale = 1;
+    const ease = 0.06;
+    const returnEase = 0.02;
+    const zoomEase = 0.04;
+
+    // Mark anchor card immediately
+    const anchor = document.querySelector('.column:nth-child(3) .card:nth-child(3)');
+    anchor.classList.add('is-anchor');
+
+    // Center on anchor and stagger fade-in once images load
+    const allImages = document.querySelectorAll('.card img');
+    Promise.all(Array.from(allImages).map(img =>
+      img.complete ? Promise.resolve() : new Promise(r => { img.onload = r; img.onerror = r; })
+    )).then(() => {
+      // Center viewport on anchor
+      const anchorRect = anchor.getBoundingClientRect();
+      const cx = anchorRect.left + anchorRect.width / 2;
+      const cy = anchorRect.top + anchorRect.height / 2;
+      const offsetX = -(cx - window.innerWidth / 2);
+      const offsetY = -(cy - window.innerHeight / 2);
+      homeX = offsetX;
+      homeY = offsetY;
+      currentX = offsetX;
+      currentY = offsetY;
+      targetX = offsetX;
+      targetY = offsetY;
+      canvas.style.transform = `translate3d(${offsetX}px, ${offsetY}px, 0)`;
+
+      // Calculate distance of each card from anchor and stagger fade-in
+      const anchorCenter = {
+        x: anchorRect.left + anchorRect.width / 2,
+        y: anchorRect.top + anchorRect.height / 2,
+      };
+
+      const cards = document.querySelectorAll('.card:not(.is-anchor)');
+      const cardDistances = Array.from(cards).map(card => {
+        const rect = card.getBoundingClientRect();
+        const dx = (rect.left + rect.width / 2) - anchorCenter.x;
+        const dy = (rect.top + rect.height / 2) - anchorCenter.y;
+        return { card, distance: Math.sqrt(dx * dx + dy * dy) };
+      });
+
+      // Sort by distance from anchor
+      cardDistances.sort((a, b) => a.distance - b.distance);
+
+      // Find max distance for normalizing delay
+      const maxDist = cardDistances[cardDistances.length - 1].distance;
+      const maxDelay = 1200; // ms — total stagger spread
+
+      cardDistances.forEach(({ card, distance }) => {
+        const delay = (distance / maxDist) * maxDelay;
+        setTimeout(() => card.classList.add('is-visible'), 400 + delay);
+      });
+    });
+
+    function updatePan(e) {
+      if (frozen) return;
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const gridRect = grid.getBoundingClientRect();
+      const canvasW = grid.scrollWidth;
+      const canvasH = grid.scrollHeight;
+
+      // How far the mouse is across the viewport (0 to 1), amplified from center
+      const sensitivity = 1.8;
+      const mx = Math.min(1, Math.max(0, 0.5 + (e.clientX / vw - 0.5) * sensitivity));
+      const my = Math.min(1, Math.max(0, 0.5 + (e.clientY / vh - 0.5) * sensitivity));
+
+      // Pan range: how much extra canvas exists beyond the viewport
+      const panRangeX = Math.max(0, canvasW - vw);
+      const panRangeY = Math.max(0, canvasH - vh);
+
+      // Center offset when viewport is larger than content
+      const centerX = canvasW < vw ? (vw - canvasW) / 2 : 0;
+      const centerY = canvasH < vh ? (vh - canvasH) / 2 : 0;
+
+      targetX = -mx * panRangeX + centerX;
+      targetY = -my * panRangeY + centerY;
+    }
+
+    function animate() {
+      const isZooming = Math.abs(targetScale - currentScale) > 0.01;
+      const e = isZooming ? zoomEase : (returning ? returnEase : ease);
+      currentX += (targetX - currentX) * e;
+      currentY += (targetY - currentY) * e;
+      currentScale += (targetScale - currentScale) * zoomEase;
+
+      canvas.style.zoom = currentScale;
+      canvas.style.transform = `translate3d(${currentX / currentScale}px, ${currentY / currentScale}px, 0)`;
+      requestAnimationFrame(animate);
+    }
+
+    const cursorEl = document.getElementById('cursor');
+    window.addEventListener('mousemove', (e) => {
+      returning = false;
+      updatePan(e);
+      cursorEl.style.left = e.clientX + 'px';
+      cursorEl.style.top = e.clientY + 'px';
+    });
+    document.addEventListener('mouseleave', () => {
+      returning = true;
+      targetX = homeX;
+      targetY = homeY;
+    });
+
+    // Touch panning
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchOffsetX = 0;
+    let touchOffsetY = 0;
+
+    window.addEventListener('touchstart', (e) => {
+      if (frozen) return;
+      returning = false;
+      const touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchOffsetX = currentX;
+      touchOffsetY = currentY;
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+      if (frozen) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const dx = touch.clientX - touchStartX;
+      const dy = touch.clientY - touchStartY;
+      targetX = touchOffsetX + dx;
+      targetY = touchOffsetY + dy;
+    }, { passive: false });
+
+    window.addEventListener('touchend', () => {
+      returning = true;
+      targetX = homeX;
+      targetY = homeY;
+    });
+
+    animate();
+
+    // Card zoom expand/collapse
+    function expandCard(card) {
+      expandedCard = card;
+      frozen = true;
+
+      // Card screen position from bounding rect
+      const rect = card.getBoundingClientRect();
+      const screenX = rect.left + rect.width / 2;
+      const screenY = rect.top + rect.height / 2;
+
+      // Actual card dimensions in grid-space (remove current scale)
+      const cardW = rect.width / currentScale;
+      const cardH = rect.height / currentScale;
+
+      // Zoom so card fills 90% of viewport (whichever dimension constrains)
+      const zoomLevel = Math.min(
+        (window.innerWidth * 0.9) / cardW,
+        (window.innerHeight * 0.9) / cardH
+      );
+
+      // Convert to grid-space: screenPos = gridPos * scale + translate
+      const gridX = (screenX - currentX) / currentScale;
+      const gridY = (screenY - currentY) / currentScale;
+
+      // Target: we want gridPos * zoomLevel + targetTranslate = viewportCenter
+      targetX = window.innerWidth / 2 - gridX * zoomLevel;
+      targetY = window.innerHeight / 2 - gridY * zoomLevel;
+      targetScale = zoomLevel;
+    }
+
+    function collapseCard() {
+      if (!expandedCard) return;
+      expandedCard = null;
+      frozen = false;
+      targetScale = 1;
+      targetX = homeX;
+      targetY = homeY;
+    }
+
+    grid.addEventListener('click', (e) => {
+      const card = e.target.closest('.card');
+      if (!card || card.classList.contains('is-anchor')) return;
+
+      if (expandedCard === card) {
+        collapseCard();
+      } else if (expandedCard) {
+        collapseCard();
+        setTimeout(() => expandCard(card), 50);
+      } else {
+        expandCard(card);
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (!expandedCard) return;
+      if (e.target.closest('.card') || e.target.closest('.info-btn') || e.target.closest('.info-panel')) return;
+      collapseCard();
+    });
+
+    // Info panel toggle
+    const infoBtn = document.getElementById('infoBtn');
+    const infoPanel = document.getElementById('infoPanel');
+    let infoOpen = false;
+
+    infoBtn.addEventListener('click', () => {
+      infoOpen = !infoOpen;
+      infoPanel.classList.toggle('is-open', infoOpen);
+      infoBtn.classList.toggle('is-close', infoOpen);
+      infoBtn.innerHTML = infoOpen
+        ? '<img src="assets/Icons/Cross.svg" alt="Close">'
+        : 'Info';
+    });
+  </script>
+</body>
+</html>
