@@ -186,12 +186,12 @@
       }
 
       .grid {
-        gap: 16px;
-        padding: 16px;
+        gap: 24px;
+        padding: 24px;
       }
 
       .column {
-        gap: 16px;
+        gap: 24px;
       }
 
       .info-panel {
@@ -439,7 +439,7 @@
       const vh = window.innerHeight;
       const canvasW = grid.scrollWidth;
       const canvasH = grid.scrollHeight;
-      const pad = 50;
+      const pad = 0;
       return {
         x: Math.max(-(canvasW - vw + pad), Math.min(pad, x)),
         y: Math.max(-(canvasH - vh + pad), Math.min(pad, y)),
@@ -506,7 +506,13 @@
     animate();
 
     // Card zoom expand/collapse
+    const isTouch = matchMedia('(pointer: coarse)').matches;
+    let preExpandX = 0;
+    let preExpandY = 0;
+
     function expandCard(card) {
+      preExpandX = currentX;
+      preExpandY = currentY;
       expandedCard = card;
       frozen = true;
 
@@ -540,8 +546,13 @@
       expandedCard = null;
       frozen = false;
       targetScale = 1;
-      targetX = homeX;
-      targetY = homeY;
+      if (isTouch) {
+        targetX = preExpandX;
+        targetY = preExpandY;
+      } else {
+        targetX = homeX;
+        targetY = homeY;
+      }
     }
 
     grid.addEventListener('click', (e) => {
