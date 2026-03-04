@@ -87,6 +87,10 @@
       opacity: 1;
     }
 
+    .card.is-focused {
+      opacity: 1;
+    }
+
     .card img {
       display: block;
       width: 100%;
@@ -318,6 +322,7 @@
     let expandedCard = null;
     let currentScale = 1;
     let targetScale = 1;
+    const isTouch = matchMedia('(pointer: coarse)').matches;
     const ease = 0.06;
     const returnEase = 0.02;
     const zoomEase = 0.04;
@@ -406,7 +411,39 @@
 
       canvas.style.zoom = currentScale;
       canvas.style.transform = `translate3d(${currentX / currentScale}px, ${currentY / currentScale}px, 0)`;
+
+      // On touch devices, highlight the card nearest to viewport center
+      if (isTouch && ++focusFrame % 6 === 0) updateFocusedCard();
+
       requestAnimationFrame(animate);
+    }
+
+    let focusFrame = 0;
+    let focusedCard = null;
+
+    function updateFocusedCard() {
+      const cx = window.innerWidth / 2;
+      const cy = window.innerHeight / 2;
+      let closest = null;
+      let closestDist = Infinity;
+
+      const cards = document.querySelectorAll('.card.is-visible');
+      for (const card of cards) {
+        const r = card.getBoundingClientRect();
+        const dx = (r.left + r.width / 2) - cx;
+        const dy = (r.top + r.height / 2) - cy;
+        const dist = dx * dx + dy * dy;
+        if (dist < closestDist) {
+          closestDist = dist;
+          closest = card;
+        }
+      }
+
+      if (closest !== focusedCard) {
+        if (focusedCard) focusedCard.classList.remove('is-focused');
+        if (closest) closest.classList.add('is-focused');
+        focusedCard = closest;
+      }
     }
 
     const cursorEl = document.getElementById('cursor');
@@ -506,7 +543,6 @@
     animate();
 
     // Card zoom expand/collapse
-    const isTouch = matchMedia('(pointer: coarse)').matches;
     let preExpandX = 0;
     let preExpandY = 0;
 
