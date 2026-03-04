@@ -422,11 +422,28 @@
       targetY = homeY;
     });
 
-    // Touch panning
+    // Touch panning — click and drag with momentum
     let touchStartX = 0;
     let touchStartY = 0;
     let touchOffsetX = 0;
     let touchOffsetY = 0;
+    let lastTouchX = 0;
+    let lastTouchY = 0;
+    let lastTouchTime = 0;
+    let velocityX = 0;
+    let velocityY = 0;
+
+    function clampPan(x, y) {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const canvasW = grid.scrollWidth;
+      const canvasH = grid.scrollHeight;
+      const pad = 50;
+      return {
+        x: Math.max(-(canvasW - vw + pad), Math.min(pad, x)),
+        y: Math.max(-(canvasH - vh + pad), Math.min(pad, y)),
+      };
+    }
 
     window.addEventListener('touchstart', (e) => {
       if (frozen) return;
@@ -436,6 +453,11 @@
       touchStartY = touch.clientY;
       touchOffsetX = currentX;
       touchOffsetY = currentY;
+      lastTouchX = touch.clientX;
+      lastTouchY = touch.clientY;
+      lastTouchTime = Date.now();
+      velocityX = 0;
+      velocityY = 0;
     }, { passive: true });
 
     window.addEventListener('touchmove', (e) => {
@@ -444,14 +466,34 @@
       const touch = e.touches[0];
       const dx = touch.clientX - touchStartX;
       const dy = touch.clientY - touchStartY;
-      targetX = touchOffsetX + dx;
-      targetY = touchOffsetY + dy;
+
+      // Track velocity for momentum
+      const now = Date.now();
+      const dt = now - lastTouchTime;
+      if (dt > 0) {
+        velocityX = (touch.clientX - lastTouchX) / dt;
+        velocityY = (touch.clientY - lastTouchY) / dt;
+      }
+      lastTouchX = touch.clientX;
+      lastTouchY = touch.clientY;
+      lastTouchTime = now;
+
+      const clamped = clampPan(touchOffsetX + dx, touchOffsetY + dy);
+      targetX = clamped.x;
+      targetY = clamped.y;
+      currentX = clamped.x;
+      currentY = clamped.y;
     }, { passive: false });
 
     window.addEventListener('touchend', () => {
-      returning = true;
-      targetX = homeX;
-      targetY = homeY;
+      // Project position forward based on velocity for momentum
+      const momentum = 200;
+      const projected = clampPan(
+        currentX + velocityX * momentum,
+        currentY + velocityY * momentum
+      );
+      targetX = projected.x;
+      targetY = projected.y;
     });
 
     animate();
