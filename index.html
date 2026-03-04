@@ -644,13 +644,8 @@
       expandedCard = null;
       frozen = false;
       targetScale = 1;
-      if (isTouch) {
-        targetX = preExpandX;
-        targetY = preExpandY;
-      } else {
-        targetX = homeX;
-        targetY = homeY;
-      }
+      targetX = preExpandX;
+      targetY = preExpandY;
     }
 
     grid.addEventListener('click', (e) => {
